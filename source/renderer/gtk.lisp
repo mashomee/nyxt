@@ -1137,7 +1137,7 @@ See `gtk-browser's `modifier-translator' slot."
                 ("tabs.getCurrent"
                  (json:encode-json-to-string
                   (buffer->tab-description (find web-view (buffer-list) :key #'gtk-object))))
-                ("print"
+                ("tabs.print"
                  (print-buffer)
                  ""))
               ""))
