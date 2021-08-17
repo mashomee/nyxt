@@ -53,6 +53,10 @@ after the mode-specific hook.")
    (search-auto-complete-p t
                            :type boolean
                            :documentation "Whether search suggestions are requested and displayed.")
+   (search-always-auto-complete-p nil
+                                  :type boolean
+                                  :documentation "Whether auto-completion works even for non-prefixed search.
+Auto-completions come from the default search engine.")
    (search-engines (list (make-instance 'search-engine
                                         :shortcut "wiki"
                                         :search-url "https://en.wikipedia.org/w/index.php?search=~a"
@@ -1237,6 +1241,14 @@ Finally, if nothing else, set the `engine' to the `default-search-engine'."))
                                          (mapcar #'shortcut engines)
                                          :test #'string=))
               (list (make-instance 'new-url-query :query input)))
+            (sera:and-let* ((buffer (current-buffer))
+                            (always (search-always-auto-complete-p buffer))
+                            (engine (default-search-engine))
+                            (completion (completion-function engine))
+                            (all-terms (str:join " " terms)))
+              (mapcar (alex:curry #'make-instance 'new-url-query
+                                  :engine engine :query)
+                      (funcall (completion-function engine) all-terms)))
             (alex:mappend (lambda (engine)
                             (append
                              (list (make-instance 'new-url-query
