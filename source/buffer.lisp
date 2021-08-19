@@ -434,7 +434,7 @@ store them somewhere and kill them once done."))
 
 (define-user-class internal-buffer)
 
-(define-class panel-buffer (internal-buffer)
+(define-class panel-buffer (web-buffer)
   ((width 250 :documentation "The width in pixels.")
    (style (cl-css:css
            '((body
