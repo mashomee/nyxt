@@ -74,7 +74,8 @@ after the mode-specific hook.")
                                          :processing-function
                                          #'(lambda (results)
                                              (when results
-                                               (mapcar #'cdar
+                                               (mapcar (lambda (hash-table)
+                                                         (first (alex:hash-table-values hash-table)))
                                                        (json:decode-json-from-string results)))))))
                    :type (cons search-engine *)
                    :documentation "A list of the `search-engine' objects.
