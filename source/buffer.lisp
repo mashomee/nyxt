@@ -63,7 +63,7 @@ after the mode-specific hook.")
                                          :processing-function
                                          #'(lambda (results)
                                              (when results
-                                               (second (json:decode-json-from-string results))))))
+                                               (second (decode-json results))))))
                          (make-instance 'search-engine
                                         :shortcut "ddg"
                                         :search-url "https://duckduckgo.com/?q=~a"
@@ -76,7 +76,7 @@ after the mode-specific hook.")
                                              (when results
                                                (mapcar (lambda (hash-table)
                                                          (first (alex:hash-table-values hash-table)))
-                                                       (json:decode-json-from-string results)))))))
+                                                       (decode-json results)))))))
                    :type (cons search-engine *)
                    :documentation "A list of the `search-engine' objects.
 You can invoke them from the prompt-buffer by prefixing your query with SHORTCUT.
