@@ -160,9 +160,6 @@ Example:
     (reduce #'hooks:add-hook
             (mapcar #'make-handler-resource (list #'old-reddit-handler #'auto-proxy-handler))
             :initial-value %slot-default%))))")
-   (default-new-buffer-url (quri:uri "https://nyxt.atlas.engineer/start")
-                           :type url-designator
-                           :documentation "The URL set to a new blank buffer opened by Nyxt.")
    (scroll-distance 50
                     :type integer
                     :documentation "The distance scroll-down or scroll-up will scroll.")
@@ -172,6 +169,51 @@ Example:
                                :type integer
                                :documentation "Horizontal scroll distance. The
 distance scroll-left or scroll-right will scroll.")
+   (style #.(cl-css:css
+             '((body
+                :margin-left "20px"
+                :margin-top "20px")
+               (h1
+                :font-family "Helvetica Neue, Helvetica"
+                :font-weight 500)
+               (h2
+                :font-family "Helvetica Neue, Helvetica"
+                :font-weight 500)
+               (h3
+                :font-family "Helvetica Neue, Helvetica"
+                :font-weight 500)
+               (h4
+                :font-family "Helvetica Neue, Helvetica"
+                :font-weight 500)
+               (h5
+                :font-family "Helvetica Neue, Helvetica"
+                :font-weight 500)
+               (h6
+                :font-family "Helvetica Neue, Helvetica"
+                :font-weight 500)
+               (hr
+                :height "3px"
+                :border-radius "2px"
+                :border-width "0"
+                :color "lightgray"
+                :background-color "lightgray")
+               (.button
+                :display "inline-block"
+                :background-color "darkgray"
+                :color "white"
+                :text-decoration "none"
+                :border-radius "2px"
+                :padding "6px"
+                :margin-left "2px"
+                :margin-right "2px")
+               (|.button:hover|
+                :color "black")
+               (|.button:visited|
+                :color "white")
+               (|.button:active|
+                :color "white")
+               (a
+                :color "gray"))))
    (current-zoom-ratio 1.0
                        :type float
                        :documentation "The current zoom relative to the default zoom.")
@@ -825,14 +867,18 @@ See `make-buffer'."
     (set-current-buffer buffer)
     buffer))
 
-(define-command make-internal-buffer (&key (title "") modes no-history-p)
+(define-command make-internal-buffer (&key (url (quri:uri "")) (title "") modes no-history-p)
   "Create a new buffer.
 MODES is a list of mode symbols.
-If URL is `:default', use `default-new-buffer-url'."
-  (buffer-make *browser* :title title
-                         :extra-modes modes
-                         :buffer-class 'user-internal-buffer
-                         :no-history-p no-history-p))
+URL is a URL to load into the buffer."
+  (let ((buffer (buffer-make *browser* :title title
+                                       :extra-modes modes
+                                       :buffer-class 'user-internal-buffer
+                                       :no-history-p no-history-p))
+        (url (if (url-empty-p url)
+                 (default-new-buffer-url *browser*)
+                 url)))
+    (buffer-load url :buffer buffer)))
 
 (define-command make-editor-buffer (&key (title "") modes)
   "Create a new editor buffer."
@@ -1082,7 +1128,8 @@ second latest buffer first."
                                :multi-selection-p t
                                :actions (list (make-mapped-command buffer-delete))))))
 
-(define-command reduce-to-buffer (&key (delete t))
+(define-internal-page-command reduce-to-buffer (&key (delete t))
+    (reduced-buffer "*Reduced Buffers*" 'base-mode)
   "Query the buffer(s) to \"reduce \" by copying their titles/URLs to a
 single buffer, optionally delete them. This function is useful for archiving a
 set of useful URLs or preparing a list to send to a someone else."
@@ -1091,24 +1138,23 @@ set of useful URLs or preparing a list to send to a someone else."
                   :sources (make-instance 'user-buffer-source
                                           :actions '()
                                           :multi-selection-p t))))
-    (with-current-html-buffer (reduced-buffer "*Reduced Buffers*" 'base-mode)
-      (spinneret:with-html-string
-        (:style (style reduced-buffer))
-        (:h1 "Reduced Buffers:")
-        (:div
-         (loop for buffer in buffers
-               collect
-                  (with-current-buffer buffer
-                    (:div
-                     (:p (:b "Title: ") (title buffer))
-                     (:p (:b "URL: ") (:a :href (render-url (url buffer))
-                                          (render-url (url buffer))))
-                     (:p (:b "Automatically generated summary: ")
-                         (:ul
-                          (loop for summary-bullet in (analysis:summarize-text
-                                                       (document-get-paragraph-contents :limit 10000))
-                                collect (:li (str:collapse-whitespaces summary-bullet)))))
-                     (:hr "")))))))
+    (spinneret:with-html-string
+      (:style (style reduced-buffer))
+      (:h1 "Reduced Buffers:")
+      (:div
+       (loop for buffer in buffers
+             collect
+             (with-current-buffer buffer
+               (:div
+                (:p (:b "Title: ") (title buffer))
+                (:p (:b "URL: ") (:a :href (render-url (url buffer))
+                                     (render-url (url buffer))))
+                (:p (:b "Automatically generated summary: ")
+                    (:ul
+                     (loop for summary-bullet in (analysis:summarize-text
+                                                  (document-get-paragraph-contents :limit 10000))
+                           collect (:li (str:collapse-whitespaces summary-bullet)))))
+                (:hr ""))))))
     (when delete (mapcar #'buffer-delete buffers))))
 
 (define-command delete-all-buffers (&key (confirmation-p t))
