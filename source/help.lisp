@@ -398,7 +398,7 @@ optimizing the use of space."
                      :font-weight 500)
                  (tr :font-size "7px")
                  (div :display inline-block)))
-   (nyxt:describe-bindings))
+   (nyxt::describe-bindings))
   (print-buffer))
 
 (defun tls-help (buffer url)
@@ -550,7 +550,7 @@ The version number is stored in the clipboard."
     (:table :id "documentation"
             (:tr (:td (:a :class "button" :href (nyxt-url 'describe-bindings) "List bindings"))
                  (:td "List all bindings for the current buffer."))
-            (:tr (:td (:a :class "button" :href (nyxt-url 'nyxt::edit-user-file-with-external-editor) "Edit user files"))
+            (:tr (:td (:a :class "button" :href (lisp-url 'nyxt::edit-user-file-with-external-editor) "Edit user files"))
                  (:td "Edit user configuration and other files in external text editor."))
             (:tr (:td (:a :class "button" :href (nyxt-url 'tutorial) "Tutorial"))
                  (:td "An introduction to Nyxt core concepts."))
