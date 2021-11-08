@@ -783,7 +783,7 @@ See `gtk-browser's `modifier-translator' slot."
                   (url buffer)
                   url)))
     (cond ((eq load-event :webkit-load-started)
-           (setf (slot-value buffer 'load-status) :loading)
+           (setf (slot-value buffer 'status) :loading)
            (print-status nil (get-containing-window-for-buffer buffer *browser*))
            (echo "Loading ~s." (render-url url)))
           ((eq load-event :webkit-load-redirected)
@@ -792,8 +792,8 @@ See `gtk-browser's `modifier-translator' slot."
            (on-signal-load-committed buffer url))
           ((eq load-event :webkit-load-finished)
            (setf (loading-webkit-history-p buffer) nil)
-           (unless (eq (slot-value buffer 'load-status) :failed)
-             (setf (slot-value buffer 'load-status) :finished))
+           (unless (eq (slot-value buffer 'status) :failed)
+             (setf (slot-value buffer 'status) :finished))
            (on-signal-load-finished buffer url)
            (print-status nil (get-containing-window-for-buffer buffer *browser*))
            (echo "Finished loading ~s." (render-url url))))))
@@ -1038,9 +1038,9 @@ See `gtk-browser's `modifier-translator' slot."
     ;; ignore these.
     (if (loading-webkit-history-p buffer)
         (setf (loading-webkit-history-p buffer) nil)
-        (unless (member (slot-value buffer 'load-status) '(:finished :failed))
+        (unless (member (slot-value buffer 'status) '(:finished :failed))
           (echo "Failed to load URL ~a in buffer ~a." failing-url (id buffer))
-          (setf (slot-value buffer 'load-status) :failed)
+          (setf (slot-value buffer 'status) :failed)
           (html-set
            (spinneret:with-html-string
              (:h1 "Page could not be loaded.")
@@ -1099,7 +1099,7 @@ requested a reload."
     ;; Mark buffer as :loading right away so functions like `window-set-buffer'
     ;; don't try to reload if they are called before the "load-changed" signal
     ;; is emitted.
-    (setf (slot-value buffer 'load-status) :loading)
+    (setf (slot-value buffer 'status) :loading)
     (if (and entry (not (quri:uri= url (url buffer))))
         (progn
           (log:debug "Load URL from history entry ~a" entry)
